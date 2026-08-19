@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ESPACIOS — prueba</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;color:#172033}
+.wrap{max-width:900px;margin:30px auto;padding:20px}
+.card{background:#fff;border-radius:18px;padding:24px;box-shadow:0 4px 20px #0001;margin-bottom:18px}
+button{border:0;border-radius:10px;padding:14px 18px;background:#1769e0;color:#fff;font-weight:bold;cursor:pointer;margin:6px}
+button.secondary{background:#475467}
+input,select,textarea{box-sizing:border-box;width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:9px;margin:5px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.muted{color:#667085}.hidden{display:none}.ok{padding:12px;background:#ecfdf3;border:1px solid #a7f3d0;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card">
+<h1>ESPACIOS</h1>
+<p class="muted">Versión de prueba para Lucas, Dharma y Marcelo</p>
+<div class="grid">
+<button onclick="show('lucas')">Lucas — Tengo espacios</button>
+<button onclick="show('dharma')">Dharma — Busco espacios</button>
+<button class="secondary" onclick="show('marcelo')">Marcelo — Administración</button>
+</div>
+</div>
+
+<div id="lucas" class="card hidden">
+<h2>Lucas · Publicar un espacio</h2>
+<label>Localidad</label><input id="lcity" placeholder="Ej. La Plata">
+<label>Tipo de espacio</label><select id="ltype"><option>Garaje / cochera</option><option>Galpón / depósito</option><option>Patio / terreno</option><option>Otro</option></select>
+<label>¿Qué se puede guardar?</label><input id="lwhat" placeholder="Ej. Auto, muebles, cajas">
+<label>Tamaño</label><input id="lsize" placeholder="Ej. 20 m²">
+<label>Precio mensual</label><input id="lprice" type="number" placeholder="Ej. 100000">
+<label>Descripción</label><textarea id="ldesc"></textarea>
+<button onclick="publish()">PUBLICAR</button>
+<div id="lmsg"></div>
+</div>
+
+<div id="dharma" class="card hidden">
+<h2>Dharma · Buscar un espacio</h2>
+<label>Localidad</label><input id="dcity" placeholder="Ej. La Plata">
+<label>Necesito guardar</label><input id="dwhat" placeholder="Ej. Auto, muebles, cajas">
+<button onclick="searchSpaces()">BUSCAR</button>
+<div id="results"></div>
+</div>
+
+<div id="marcelo" class="card hidden">
+<h2>Marcelo · Administración</h2>
+<p>Panel de prueba. Esta versión permite probar la navegación y el flujo del sistema sin modificar los datos existentes de Supabase.</p>
+<div class="ok">Sistema de prueba listo.</div>
+</div>
+</div>
+
+<script>
+const API='https://psbqiqyrlimzzaikmmaz.supabase.co/functions/v1/espacios-publish';
+function show(id){
+  document.querySelectorAll('.card[id]').forEach(x=>x.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+async function call(body, token){
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-espacios-access':token},body:JSON.stringify(body)});
+  const x=await r.json();
+  if(!r.ok) throw new Error(x.error||'Error');
+  return x;
+}
+async function publish(){
+  const msg=document.getElementById('lmsg');
+  try{
+    await call({
+      action:'publish',
+      localidad:lcity.value,
+      tipo:ltype.value,
+      permite_guardar:lwhat.value,
+      tamano:lsize.value,
+      precio_mensual:Number(lprice.value),
+      descripcion:ldesc.value
+    },'LUCAS-ESPACIOS');
+    msg.innerHTML='<div class="ok">Espacio publicado correctamente.</div>';
+  }catch(e){msg.innerHTML='<div class="ok">No se pudo publicar: '+e.message+'</div>'}
+}
+async function searchSpaces(){
+  const box=document.getElementById('results');
+  try{
+    const x=await call({action:'search',que_busca:dwhat.value||'Cualquier cosa',localidad:dcity.value,duracion:'1 mes'},'DHARMA-ESPACIOS');
+    box.innerHTML=x.spaces.length ? x.spaces.map(s=>`<div class="card"><b>${s.tipo}</b><br>${s.localidad}<br>${s.tamano||''}<br><strong>$ ${Number(s.precio_mensual).toLocaleString('es-AR')}/mes</strong></div>`).join('') : '<p>No encontramos espacios.</p>';
+  }catch(e){box.innerHTML='<p>'+e.message+'</p>'}
+}
+</script>
+</body>
+</html>
