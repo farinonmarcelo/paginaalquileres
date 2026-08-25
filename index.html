@@ -54,25 +54,27 @@ input,select,textarea{box-sizing:border-box;width:100%;padding:11px;border:1px s
 </div>
 </div>
 
+<!-- 1. Función de navegación básica (se ejecuta al instante) -->
+<script>
+function show(id) {
+  document.querySelectorAll('.card[id]').forEach(x => x.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+</script>
+
+<!-- 2. Carga e integración con Supabase -->
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-  // 1. COLOCA AQUÍ TUS DATOS REALES DE SUPABASE:
-  const SUPABASE_URL = 'https://psbqiqyrlimzzaikmmaz.supabase.co/rest/v1/'; // O la URL de tu proyecto
-  const SUPABASE_ANON_KEY = 'sb_publishable_8NciJN5PruU5VzAAcWiJug_5pDxLNhl';
+  // ATENCIÓN: La URL base de tu proyecto NO lleva '/rest/v1/' al final
+  const SUPABASE_URL = 'https://psbqiqyrlimzzaikmmaz.supabase.co'; 
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1...'; // Reemplazar por tu clave anon que empieza por eyJ...
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // Hacer disponibles las funciones para los botones onclick
-  window.show = function(id) {
-    document.querySelectorAll('.card[id]').forEach(x => x.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-  };
 
   window.publish = async function() {
     const msg = document.getElementById('lmsg');
     try {
-      // Reemplaza 'espacios' por el nombre exacto de tu tabla en Supabase
       const { data, error } = await supabase.from('espacios').insert([{
         localidad: document.getElementById('lcity').value,
         tipo: document.getElementById('ltype').value,
@@ -92,7 +94,6 @@ input,select,textarea{box-sizing:border-box;width:100%;padding:11px;border:1px s
   window.searchSpaces = async function() {
     const box = document.getElementById('results');
     try {
-      // Reemplaza 'espacios' por el nombre exacto de tu tabla
       const { data: spaces, error } = await supabase
         .from('espacios')
         .select('*');
