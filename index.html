@@ -54,58 +54,58 @@ input,select,textarea{box-sizing:border-box;width:100%;padding:11px;border:1px s
 </div>
 </div>
 
-<script>
-const API='https://psbqiqyrlimzzaikmmaz.supabase.co/functions/v1/espacios-publish';
-function show(id){
-  document.querySelectorAll('.card[id]').forEach(x=>x.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
-async function call(body, token){
-  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-espacios-access':token},body:JSON.stringify(body)});
-  const x=await r.json();
-  if(!r.ok) throw new Error(x.error||'Error');
-  return x;
-}
-async function publish(){
-  const msg=document.getElementById('lmsg');
-  try{
-    await call({
-      action:'publish',
-      localidad:lcity.value,
-      tipo:ltype.value,
-      permite_guardar:lwhat.value,
-      tamano:lsize.value,
-      precio_mensual:Number(lprice.value),
-      descripcion:ldesc.value
-    },'LUCAS-ESPACIOS');
-    msg.innerHTML='<div class="ok">Espacio publicado correctamente.</div>';
-  }catch(e){msg.innerHTML='<div class="ok">No se pudo publicar: '+e.message+'</div>'}
-}
-async function searchSpaces(){
-  const box=document.getElementById('results');
-  try{
-    const x=await call({action:'search',que_busca:dwhat.value||'Cualquier cosa',localidad:dcity.value,duracion:'1 mes'},'DHARMA-ESPACIOS');
-    box.innerHTML=x.spaces.length ? x.spaces.map(s=>`<div class="card"><b>${s.tipo}</b><br>${s.localidad}<br>${s.tamano||''}<br><strong>$ ${Number(s.precio_mensual).toLocaleString('es-AR')}/mes</strong></div>`).join('') : '<p>No encontramos espacios.</p>';
-  }catch(e){box.innerHTML='<p>'+e.message+'</p>'}
-}
-</script>
-  <script type="module">
+<script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-  // Reemplaza con tus llaves del panel de Supabase
-  const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
-  const SUPABASE_ANON_KEY = 'TU_LLAVE_ANONIMA_PUBLICA';
+  // 1. COLOCA AQUÍ TUS DATOS REALES DE SUPABASE:
+  const SUPABASE_URL = 'https://psbqiqyrlimzzaikmmaz.supabase.co'; // O la URL de tu proyecto
+  const SUPABASE_ANON_KEY = 'https://psbqiqyrlimzzaikmmaz.supabase.co/rest/v1/';
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Ejemplo de prueba: insertar un registro
-  async function test() {
-    const { data, error } = await supabase
-      .from('tus_tabla')
-      .select('*');
-    
-    console.log(data, error);
-  }
+  // Hacer disponibles las funciones para los botones onclick
+  window.show = function(id) {
+    document.querySelectorAll('.card[id]').forEach(x => x.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  };
+
+  window.publish = async function() {
+    const msg = document.getElementById('lmsg');
+    try {
+      // Reemplaza 'espacios' por el nombre exacto de tu tabla en Supabase
+      const { data, error } = await supabase.from('espacios').insert([{
+        localidad: document.getElementById('lcity').value,
+        tipo: document.getElementById('ltype').value,
+        permite_guardar: document.getElementById('lwhat').value,
+        tamano: document.getElementById('lsize').value,
+        precio_mensual: Number(document.getElementById('lprice').value),
+        descripcion: document.getElementById('ldesc').value
+      }]);
+
+      if (error) throw error;
+      msg.innerHTML = '<div class="ok">Espacio publicado correctamente.</div>';
+    } catch(e) {
+      msg.innerHTML = '<div class="ok">No se pudo publicar: ' + e.message + '</div>';
+    }
+  };
+
+  window.searchSpaces = async function() {
+    const box = document.getElementById('results');
+    try {
+      // Reemplaza 'espacios' por el nombre exacto de tu tabla
+      const { data: spaces, error } = await supabase
+        .from('espacios')
+        .select('*');
+
+      if (error) throw error;
+
+      box.innerHTML = spaces && spaces.length 
+        ? spaces.map(s => `<div class="card"><b>${s.tipo}</b><br>${s.localidad}<br>${s.tamano||''}<br><strong>$ ${Number(s.precio_mensual).toLocaleString('es-AR')}/mes</strong></div>`).join('') 
+        : '<p>No encontramos espacios.</p>';
+    } catch(e) {
+      box.innerHTML = '<p>' + e.message + '</p>';
+    }
+  };
 </script>
 </body>
 </html>
