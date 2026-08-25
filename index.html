@@ -89,5 +89,23 @@ async function searchSpaces(){
   }catch(e){box.innerHTML='<p>'+e.message+'</p>'}
 }
 </script>
+  <script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  // Reemplaza con tus llaves del panel de Supabase
+  const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+  const SUPABASE_ANON_KEY = 'TU_LLAVE_ANONIMA_PUBLICA';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Ejemplo de prueba: insertar un registro
+  async function test() {
+    const { data, error } = await supabase
+      .from('tus_tabla')
+      .select('*');
+    
+    console.log(data, error);
+  }
+</script>
 </body>
 </html>
